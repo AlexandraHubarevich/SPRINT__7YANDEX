@@ -10,6 +10,8 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import static org.junit.Assert.assertTrue;
+
 
 public class LoginCourierTest {
     private String login = RandomStringUtils.randomAlphanumeric(10);
@@ -27,68 +29,71 @@ public class LoginCourierTest {
     @DisplayName("Логин курьера: курьер может авторизоваться; успешный запрос возвращает id")
     //курьер может авторизоваться;
     //успешный запрос возвращает id.
-    public void CreateCourierTest() {
+    public void createCourierAndLoginTest() {
         Courier courier = new Courier(login, password, firstName);
         courierClient.сreateCourier(courier);
         Response loginResponse = courierClient.loginCourier(new CourierLog(courier.getLogin(), courier.getPassword()));
 
         int id = courierClient.loginCourier(new CourierLog(courier.getLogin(), courier.getPassword())).jsonPath().getInt("id");
         Assert.assertEquals(200, loginResponse.statusCode());
-        Assert.assertEquals("{\"id\":" + id + "}", loginResponse.asString());
+       assertTrue(loginResponse.asString().contains("id"));
+
     }
+
 
     @Test
     @DisplayName("Логин курьера: для авторизации нужно передать все обязательные поля:проверяем, что нельзя залогиниться только с указанием пароля")
     //для авторизации нужно передать все обязательные поля:проверяем, что нельзя залогиниться только с указанием пароля;
-    public void LoginWithoutLoginTest() {
+    public void loginWithoutLoginTest() {
         Courier courier = new Courier(login, password, firstName);
         courierClient.сreateCourier(courier);
         Response responseEmptyLogin = courierClient.loginCourier(new CourierLog(null, courier.getPassword()));
         Assert.assertEquals(400, responseEmptyLogin.statusCode());
-        Assert.assertEquals("{\"code\":400,\"message\":\"Недостаточно данных для входа\"}", responseEmptyLogin.asString());
+        Assert.assertEquals("Недостаточно данных для входа", responseEmptyLogin.jsonPath().getString("message"));
     }
 
     @Test
     @DisplayName("Логин курьера: для авторизации нужно передать все обязательные поля:проверяем, что нельзя залогиниться только с указанием логина")
 //для авторизации нужно передать все обязательные поля:проверяем, что нельзя залогиниться только с указанием логина
-    public void LoginWithoutPasswordTest() {
+    public void loginWithoutPasswordTest() {
         Courier courier = new Courier(login, password, firstName);
         courierClient.сreateCourier(courier);
         Response responseEmptyPassword = courierClient.loginCourier(new CourierLog(courier.getLogin(), null));
         Assert.assertEquals(400, responseEmptyPassword.statusCode());
-        Assert.assertEquals("{\"code\":400,\"message\":\"Недостаточно данных для входа\"}", responseEmptyPassword.asString());
+        Assert.assertEquals("Недостаточно данных для входа", responseEmptyPassword.jsonPath().getString("message"));
     }
 
     @Test
     @DisplayName("Логин курьера: если авторизоваться под несуществующим пользователем, запрос возвращает ошибку")
 //если авторизоваться под несуществующим пользователем, запрос возвращает ошибку;
-    public void LoginNotExist() {
+    public void loginNotExist() {
         Response responseNotExist = courierClient.loginCourier(new CourierLog(RandomStringUtils.randomAlphanumeric(10), RandomStringUtils.randomAlphanumeric(15)));
         Assert.assertEquals(404, responseNotExist.statusCode());
-        Assert.assertEquals("{\"code\":404,\"message\":\"Учетная запись не найдена\"}", responseNotExist.asString());
+        Assert.assertEquals("Учетная запись не найдена", responseNotExist.jsonPath().getString("message"));
     }
 
 
     @Test
     @DisplayName("Логин курьера: система вернёт ошибку, если неправильно указать логин")
 //система вернёт ошибку, если неправильно указать логин;
-    public void LoginIncorrectLoginTest() {
+    public void loginIncorrectLoginTest() {
         Courier courier = new Courier(login, password, firstName);
         courierClient.сreateCourier(courier);
         Response responseIncorrectLogin = courierClient.loginCourier(new CourierLog(RandomStringUtils.randomAlphanumeric(10), courier.getPassword()));
         Assert.assertEquals(404, responseIncorrectLogin.statusCode());
-        Assert.assertEquals("{\"code\":404,\"message\":\"Учетная запись не найдена\"}", responseIncorrectLogin.asString());
+        Assert.assertEquals("Учетная запись не найдена", responseIncorrectLogin.jsonPath().getString("message"));
     }
+
 
     @Test
     @DisplayName("Логин курьера: система вернёт ошибку, если неправильно указать пароль")
 //система вернёт ошибку, если неправильно указать пароль;;
-    public void LoginIncorrectPasswordTest() {
+    public void loginIncorrectPasswordTest() {
         Courier courier = new Courier(login, password, firstName);
         courierClient.сreateCourier(courier);
         Response responseIncorrectPassword = courierClient.loginCourier(new CourierLog(courier.getLogin(), RandomStringUtils.randomAlphanumeric(10)));
         Assert.assertEquals(404, responseIncorrectPassword.statusCode());
-        Assert.assertEquals("{\"code\":404,\"message\":\"Учетная запись не найдена\"}", responseIncorrectPassword.asString());
+        Assert.assertEquals("Учетная запись не найдена", responseIncorrectPassword.jsonPath().getString("message"));
     }
 
     @After

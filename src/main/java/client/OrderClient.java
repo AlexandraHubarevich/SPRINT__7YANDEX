@@ -27,7 +27,7 @@ public class OrderClient {
     }
 
     @Step(".get(\"/api/v1/orders/track\")")
-    public Response GetOrderByTrack(Integer track) {
+    public Response getOrderByTrack(Integer track) {
         Response response = given()
                 .header("Content-type", "application/json")
                 .queryParam("t", track)

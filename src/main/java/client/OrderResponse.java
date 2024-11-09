@@ -150,5 +150,4 @@ public class OrderResponse {
     private String courierFirstName;
     private String updatedAt;
     private String createdAt;
-
 }

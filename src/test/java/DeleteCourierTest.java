@@ -1,6 +1,7 @@
 import client.Courier;
 import client.CourierClient;
 import client.CourierLog;
+import com.github.javafaker.Faker;
 import io.qameta.allure.junit4.DisplayName;
 import io.restassured.RestAssured;
 import io.restassured.response.Response;
@@ -13,9 +14,10 @@ import java.util.Random;
 
 
 public class DeleteCourierTest {
-    private String login = RandomStringUtils.randomAlphanumeric(10);
-    private String password = RandomStringUtils.randomAlphanumeric(15);
-    private String firstName = RandomStringUtils.randomAlphanumeric(20);
+    Faker faker = new Faker();
+    private String login = faker.name().username();
+    private String password = faker.internet().password(3, 10);
+    private String firstName = faker.name().firstName();
     private CourierClient courierClient = new CourierClient();
 
 
@@ -27,36 +29,36 @@ public class DeleteCourierTest {
     @Test
     @DisplayName("Удалить курьера: успешный запрос возвращает ok: true;")
     //успешный запрос возвращает ok: true;
-    public void DeleteCourierTest() {
+    public void deleteCourierTest() {
         Courier courier = new Courier(login, password, firstName);
         courierClient.сreateCourier(courier);
         int id = courierClient.loginCourier(new CourierLog(courier.getLogin(), courier.getPassword())).jsonPath().getInt("id");
         Response responseDelete = courierClient.deleteCourier(id);
         Assert.assertEquals(200, responseDelete.statusCode());
-        Assert.assertEquals("{\"ok\":true}", responseDelete.asString());
+        Assert.assertEquals("true", responseDelete.jsonPath().getString("ok"));
     }
 
     @Test
     @DisplayName("Удалить курьера: неуспешный запрос возвращает соответствующую ошибку;если отправить запрос с несуществующим id, вернётся ошибка")
     //неуспешный запрос возвращает соответствующую ошибку;
     //если отправить запрос с несуществующим id, вернётся ошибка.
-    public void DeleteIncorrectTest() {
+    public void deleteIncorrectTest() {
         Courier courier = new Courier(login, password, firstName);
         courierClient.сreateCourier(courier);
         Response responseDelete = courierClient.deleteCourier(new Random().nextInt());
         Assert.assertEquals(404, responseDelete.statusCode());
-        Assert.assertEquals("{\"code\":404,\"message\":\"Курьера с таким id нет.\"}", responseDelete.asString());
+        Assert.assertEquals("Курьера с таким id нет.", responseDelete.jsonPath().getString("message"));
     }
 
     @Test
     @DisplayName("Удалить курьера: если отправить запрос без id, вернётся ошибка;")
     //если отправить запрос без id, вернётся ошибка;
-    public void DeleteWithoutTest() {
+    public void deleteWithoutTest() {
         Courier courier = new Courier(login, password, firstName);
         courierClient.сreateCourier(courier);
         Response responseDelete = courierClient.deleteCourierWithoutId();
         System.out.println(responseDelete.asString());
         Assert.assertEquals(404, responseDelete.statusCode());
-        Assert.assertEquals("{\"message\":  \"Недостаточно данных для удаления курьера\"}", responseDelete.asString());
+        Assert.assertEquals("Недостаточно данных для удаления курьера.", responseDelete.jsonPath().getString("message"));
     }
 }

@@ -1,3 +1,6 @@
+import client.OrderAccept;
+import client.OrderClient;
+import com.github.javafaker.Faker;
 import io.qameta.allure.junit4.DisplayName;
 import io.restassured.RestAssured;
 import io.restassured.response.Response;
@@ -8,38 +11,31 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
 import java.util.List;
+import java.util.Random;
 
 import static io.restassured.RestAssured.given;
 import static org.junit.Assert.assertTrue;
 
 @RunWith(Parameterized.class)
 public class OrderTest {
+    Faker faker = new Faker();
+    String firstName = faker.name().firstName();
+    String lastName = faker.name().lastName();
+    String address = faker.address().fullAddress();
+    String metrostation = String.valueOf(new Random().nextInt());
+    String phone = String.valueOf(faker.phoneNumber());
+    int rentTime = new Random().nextInt();
+    String deliveryDate = "2024-12-12";
+    String comment = "ASAP";
+    List<String> color;
+
 
     @Before
     public void setUp() {
         RestAssured.baseURI = "https://qa-scooter.praktikum-services.ru/";
     }
 
-    private String firstName;
-    private String lastName;
-    private String address;
-    private String metroStation;
-    private String phone;
-    private int rentTime;
-    private String deliveryDate;
-    private String comment;
-    List<String> color = List.of("Black", "Grey");
-
-
-    public OrderTest(String firstName, String lastName, String address, String metroStation, String phone, int rentTime, String deliveryDate, String comment, List<String> color) {
-        this.address = address;
-        this.comment = comment;
-        this.deliveryDate = deliveryDate;
-        this.firstName = firstName;
-        this.lastName = lastName;
-        this.metroStation = metroStation;
-        this.phone = phone;
-        this.rentTime = rentTime;
+    public OrderTest(List<String> color) {
         this.color = color;
     }
     // Проверь, что когда создаёшь заказ:
@@ -50,24 +46,23 @@ public class OrderTest {
 
 
     @Parameterized.Parameters
-    public static Object[][] getCredentials() {
+    public static Object[][] getColor() {
         return new Object[][]{
-                {"Alex2", "Ivanov2", "Konoha, 143 apt.", "6", "+8 805 500 35 35", 2, "2024-12-12", "Text2", List.of("BLACK")},
-                {"Alex3", "Ivanov3", "Konoha, 144 apt.", "5", "+8 806 500 35 35", 4, "2024-12-06", "Text3", List.of("GREY")},
-                {"Alex4", "Ivanov4", "Konoha, 145 apt.", "6", "+8 807 500 35 35", 1, "2024-12-07", "Text4", List.of("GREY", "BLACK")},
-                {"Alex5", "Ivanov5", "Konoha, 146 apt.", "4", "+7 808 355 35 35", 5, "2020-06-08", "Text5", List.of()}
-
-
+                {List.of("BLACK")},
+                {List.of("GREY")},
+                {List.of("GREY", "BLACK")},
+                {List.of()}
         };
     }
+
     //Проверь, что в тело ответа возвращается список заказов.
     @Test
     @DisplayName("Проверь, что в тело ответа возвращается список заказов")
     public void CheckVariety() {
-        OrderTest order = new OrderTest(firstName, lastName, address, metroStation, phone, rentTime, deliveryDate, comment, color);
+        OrderAccept orderAccept = new OrderAccept(firstName, lastName, address, metrostation, phone, rentTime, deliveryDate, comment, color);
         Response response = given()
                 .header("Content-type", "application/json")
-                .body(order)
+                .body(orderAccept)
                 .when()
                 .post("/api/v1/orders");
 
